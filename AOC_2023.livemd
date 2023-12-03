@@ -1,11 +1,7 @@
 # Advent of Code 2023
 
 ```elixir
-Mix.install([
-  {:kino, "~> 0.7.0"},
-  {:vega_lite, "~> 0.1.5"},
-  {:kino_vega_lite, "~> 0.1.5"}
-])
+Mix.install([{:kino, "~> 0.11.3"}])
 ```
 
 ## The Game
@@ -232,9 +228,12 @@ defmodule CubeConundrum do
   end
 
   defp group_as_ints([id | game]) do
-    trim = fn {n, " " <> c} -> {n, c} end
+    parse_trim = fn r ->
+      {n, " " <> c} = Integer.parse(r)
+      {n, c}
+    end
 
-    {id, Enum.map(game, &(Integer.parse(&1) |> trim.()))}
+    {id, Enum.map(game, &parse_trim.(&1))}
   end
 
   defp find_minimum(rolls) do
