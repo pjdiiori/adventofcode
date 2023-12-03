@@ -241,9 +241,7 @@ defmodule CubeConundrum do
     Enum.reduce(
       rolls,
       %{"red" => 0, "blue" => 0, "green" => 0},
-      fn {n, color}, acc ->
-        if n > acc[color], do: Map.put(acc, color, n), else: acc
-      end
+      fn {n, color}, acc -> Map.put(acc, color, max(n, acc[color])) end
     )
   end
 end
