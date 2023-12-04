@@ -256,6 +256,8 @@ CubeConundrum.part_two(games_input)
 
 ## --- Day 3: Gear Ratios ---
 
+### --- Part One ---
+
 You and the Elf eventually reach a gondola lift station; he says the gondola lift will take you up to the water source, but this is as far as he can bring you. You go inside.
 
 It doesn't take long to find the gondolas, but there seems to be a problem: they're not moving.
@@ -287,6 +289,37 @@ In this schematic, two numbers are not part numbers because they are not adjacen
 
 Of course, the actual engine schematic is much larger. What is the sum of all of the part numbers in the engine schematic?
 
+### --- Part Two ---
+
+The engineer finds the missing part and installs it in the engine! As the engine springs to life, you jump in the closest gondola, finally ready to ascend to the water source.
+
+You don't seem to be going very fast, though. Maybe something is still wrong? Fortunately, the gondola has a phone labeled "help", so you pick it up and the engineer answers.
+
+Before you can explain the situation, she suggests that you look out the window. There stands the engineer, holding a phone in one hand and waving with the other. You're going so slowly that you haven't even left the station. You exit the gondola.
+
+The missing part wasn't the only issue - one of the gears in the engine is wrong. A gear is any * symbol that is adjacent to exactly two part numbers. Its gear ratio is the result of multiplying those two numbers together.
+
+This time, you need to find the gear ratio of every gear and add them all up so that the engineer can figure out which gear needs to be replaced.
+
+Consider the same engine schematic again:
+
+```
+467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..
+```
+
+In this schematic, there are two gears. The first is in the top left; it has part numbers 467 and 35, so its gear ratio is 16345. The second gear is in the lower right; its gear ratio is 451490. (The * adjacent to 617 is not a gear because it is only adjacent to one part number.) Adding up all of the gear ratios produces 467835.
+
+What is the sum of all of the gear ratios in your engine schematic?
+
 ```elixir
 test_input = Kino.Input.textarea("test_input")
 ```
@@ -295,23 +328,39 @@ test_input = Kino.Input.textarea("test_input")
 schematic_input = Kino.Input.textarea("schematic_input")
 ```
 
+<!-- livebook:{"reevaluate_automatically":true} -->
+
 ```elixir
 defmodule GearRatios do
-  @symbol ~r/[^0-9.]/
   @number ~r/\d+/
 
   def part_one(input) do
     rows = rows_with_index(input)
     nums = Enum.reduce(rows, %{}, &nums_with_index_range/2)
-    symbols = Enum.reduce(rows, %{}, &symbols_index/2)
+    symbols = Enum.reduce(rows, %{}, &symbols_index(&1, &2, ~r/[^0-9.]/))
 
     Enum.reduce(nums, 0, fn {num_row_index, nums}, acc ->
       sum =
         nums
-        |> adjacent_to(adjacent_symbol_rows(symbols, num_row_index))
+        |> adjacent_to_symbol(adjacent_rows(symbols, num_row_index))
         |> Enum.sum()
 
       acc + sum
+    end)
+  end
+
+  def part_two(input) do
+    rows = rows_with_index(input)
+    nums = Enum.reduce(rows, %{}, &nums_with_index_range/2)
+    asterisks = Enum.reduce(rows, %{}, &symbols_index(&1, &2, ~r/[*]/))
+
+    Enum.reduce(asterisks, 0, fn {row_index, asterisk_indexes}, acc ->
+      gear_ratio =
+        asterisk_indexes
+        |> adjacent_to_number(adjacent_rows(nums, row_index))
+        |> Enum.sum()
+
+      acc + gear_ratio
     end)
   end
 
@@ -333,17 +382,17 @@ defmodule GearRatios do
     Map.put(acc, i, Enum.zip(nums, indexes))
   end
 
-  defp symbols_index({row, i}, acc) do
+  defp symbols_index({row, i}, acc, symbol_regex) do
     Map.put(
       acc,
       i,
-      @symbol
+      symbol_regex
       |> Regex.scan(row, return: :index)
       |> Enum.map(fn [{i, _r}] -> i end)
     )
   end
 
-  defp adjacent_to(nums, adjacent_symbol_rows) do
+  defp adjacent_to_symbol(nums, adjacent_symbol_rows) do
     include = fn included?, n -> if included?, do: String.to_integer(n), else: 0 end
 
     Enum.map(nums, fn {n, i_range} ->
@@ -353,16 +402,31 @@ defmodule GearRatios do
     end)
   end
 
-  defp adjacent_symbol_rows(symbols, num_row_index) do
-    (symbols[num_row_index - 1] || []) ++
-      symbols[num_row_index] ++
-      (symbols[num_row_index + 1] || [])
+  defp adjacent_to_number(asterisk_indexes, adjacent_number_rows) do
+    asterisk_indexes
+    |> Enum.map(fn asterisk_index ->
+      for {n, num_index_range} <- adjacent_number_rows,
+          asterisk_index in num_index_range,
+          do: String.to_integer(n)
+    end)
+    |> Enum.map(&multiply_gears/1)
+  end
+
+  defp adjacent_rows(map, row_index) do
+    (map[row_index - 1] || []) ++ map[row_index] ++ (map[row_index + 1] || [])
   end
 
   defp index_range([{i, r}]), do: (i - 1)..(i + r)
+
+  defp multiply_gears(gears) when length(gears) < 2, do: 0
+  defp multiply_gears(gears), do: Enum.product(gears)
 end
 ```
 
 ```elixir
 GearRatios.part_one(schematic_input)
+```
+
+```elixir
+GearRatios.part_two(schematic_input)
 ```
