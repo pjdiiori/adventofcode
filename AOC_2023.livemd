@@ -516,23 +516,41 @@ defmodule Scratchcards do
   end
 
   def part_two(input) do
-    cards = parse(input)
-    Enum.reduce(cards, cards, &duplicate_winners(&1, &2))
+    cards = parse_to_list(input)
+
+    cards
+    |> Enum.reduce(cards, &duplicate_winners(&1, &2))
+    |> Enum.reduce(0, fn {_i, {count, _, _}}, acc -> count + acc end)
   end
 
-  def duplicate_winners({index, {_starting_copies, winners, my_numbers}}, all_cards) do
+  def duplicate_winners({index, _}, all_cards) do
+    {_i, {starting_copies, winners, my_numbers}} = Enum.at(all_cards, index)
     number_of_winners = Enum.count(my_numbers, &(&1 in winners))
     index_range = (index + 1)..(index + number_of_winners)
 
     if number_of_winners > 0 do
-      # reduce_while copies < startng_copies?
-      Enum.reduce(index_range, all_cards, fn i, all_cards ->
-        {copies, winners, numbers} = _next_card = all_cards[i]
-        Map.put(all_cards, i, {copies + number_of_winners, winners, numbers})
+      Enum.reduce(index_range, all_cards, fn i, acc ->
+        {_i, {copies, winners, numbers}} = _next_card = Enum.at(acc, i)
+        List.replace_at(acc, i, {i, {copies + starting_copies, winners, numbers}})
       end)
     else
       all_cards
     end
+  end
+
+  def parse_to_list(input) do
+    input
+    |> Kino.Input.read()
+    |> String.split(["\n", "Card"], trim: true)
+    |> Enum.reduce([], fn card, acc ->
+      [[index | winners], my_numbers] =
+        card
+        |> String.split("|")
+        |> Enum.map(&scan/1)
+
+      [{index - 1, {1, winners, my_numbers}} | acc]
+    end)
+    |> Enum.reverse()
   end
 
   def sum_winners({_, {_, winners, my_numbers}}, acc) do
@@ -555,7 +573,7 @@ defmodule Scratchcards do
         |> String.split("|")
         |> Enum.map(&scan/1)
 
-      Map.put(acc, i - 1, {1, winners, my_numbers})
+      Map.put(acc, i, {1, winners, my_numbers})
     end)
   end
 
@@ -570,7 +588,7 @@ end
 ```
 
 ```elixir
-Scratchcards.part_two(test_input)
+Scratchcards.part_two(cards_input)
 ```
 
 ## --- Day 7: Camel Cards ---
