@@ -588,6 +588,10 @@ end
 ```
 
 ```elixir
+Scratchcards.part_one(cards_input)
+```
+
+```elixir
 Scratchcards.part_two(cards_input)
 ```
 
