@@ -4,7 +4,7 @@
 Mix.install([{:kino, "~> 0.11.3"}])
 ```
 
-## Part One
+## Section
 
 ```elixir
 test_input = Kino.Input.textarea("test_input")
@@ -21,16 +21,19 @@ defmodule WaitForIt do
   def part_one(input) do
     input
     |> parse()
-    |> Enum.map(fn {t, d} -> t |> hold_times() |> Enum.filter(&(&1 > d)) end)
+    |> Enum.map(&winning_hold_times/1)
     |> Enum.map(&length/1)
     |> Enum.product()
   end
 
-  def hold_times(time) do
-    for milsec <- 0..time do
-      milsec * (time - milsec)
-    end
+  def winning_hold_times(time, dist) do
+    0..time
+    |> Enum.map(&(&1 * (time - &1)))
+    |> Enum.filter(&(&1 > dist))
   end
+
+  def winning_hold_times({t, d}), do: winning_hold_times(t, d)
+  def winning_hold_times([t, d]), do: winning_hold_times(t, d)
 
   def parse(input) do
     input
@@ -64,7 +67,7 @@ defmodule WaitForIt do
       "Time:" <> times -> join(times)
       "Distance:" <> distances -> join(distances)
     end)
-    |> (fn [t, d] -> t |> hold_times() |> Enum.filter(&(&1 > d)) end).()
+    |> winning_hold_times()
     |> length()
   end
 end

@@ -1,8 +1,10 @@
-## --- Day 7: Camel Cards ---
+# --- Day 7: Camel Cards ---
 
 ```elixir
 Mix.install([{:kino, "~> 0.11.3"}])
 ```
+
+## Part One
 
 ```elixir
 test_input = Kino.Input.textarea("test_input")
@@ -69,4 +71,3 @@ end
 ```elixir
 CamelCards.part_one(cards_input)
 ```
-
