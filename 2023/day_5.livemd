@@ -1,0 +1,108 @@
+```elixir
+Mix.install([{:kino, "~> 0.11.3"}])
+```
+
+## --- Day 5: If You Give A Seed A Fertilizer ---
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+almanac_input = Kino.Input.textarea("almanac_input")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule IfYouGiveASeedAFertilizer do
+  def part_one(input) do
+    [{_, seeds} | seed_map] = parse(input)
+
+    seeds
+    |> Enum.map(&locations(&1, seed_map))
+    |> Enum.min()
+  end
+
+  def part_two(input) do
+    [{_, seeds} | seed_map] = parse(input)
+
+    seeds
+    |> map_seed_ranges()
+    |> Enum.map(&locations_2(&1, seed_map))
+
+    # |> Enum.min()
+  end
+
+  def map_seed_ranges(seeds) do
+    seeds
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [x, y] -> x..(x + y) end)
+  end
+
+  def locations_2(seed_range, seed_map) do
+    Enum.reduce(seed_map, seed_range, fn {_key, s_to_d}, seed_range ->
+      Enum.reduce_while(s_to_d, seed_range, fn {s_range, d_range}, first..last ->
+        if first in s_range || last in s_range do
+          {:halt, find_single_seed(first..last, s_range, d_range)}
+        else
+          {:cont, seed_range}
+        end
+      end)
+    end)
+  end
+
+  def find_single_seed(seed_range, source_range, dest_range) do
+    if seed_range.first < source_range.first do
+      Stream.drop_while(seed_range, fn n -> nil end)
+    else
+    end
+  end
+
+  def locations(seed_num, seed_map) do
+    Enum.reduce(seed_map, seed_num, fn {_key, s_to_d}, acc ->
+      Enum.reduce_while(s_to_d, acc, fn {s_range, d_range}, acc ->
+        if acc in s_range do
+          {:halt, convert_from_range(acc, s_range, d_range)}
+        else
+          {:cont, acc}
+        end
+      end)
+    end)
+  end
+
+  def convert_from_range(n, s_range, d_range) do
+    d_range.first + (n - s_range.first)
+  end
+
+  def parse(input) do
+    input
+    |> Kino.Input.read()
+    |> String.split(["\n\n"], trim: true)
+    |> Enum.reduce([], fn
+      "seeds: " <> nums, acc ->
+        Keyword.put(acc, :seeds, list_to_ints(nums))
+
+      map, acc ->
+        [key, _ | nums] = String.split(map, [" map:", "\n"])
+        Keyword.put(acc, key_to_atom(key), nums_to_ranges(nums))
+    end)
+    |> Enum.reverse()
+  end
+
+  def key_to_atom(key), do: key |> String.replace("-", "_") |> String.to_atom()
+
+  def nums_to_ranges(nums) do
+    Enum.map(nums, fn x ->
+      [d, s, l] = list_to_ints(x)
+      {s..(s + l - 1), d..(d + l - 1)}
+    end)
+  end
+
+  def list_to_ints(s), do: String.split(s, " ") |> Enum.map(&String.to_integer/1)
+end
+```
+
+```elixir
+IfYouGiveASeedAFertilizer.part_two(almanac_input)
+```

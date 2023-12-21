@@ -1,0 +1,3 @@
+```elixir
+Mix.install([{:kino, "~> 0.11.3"}])
+```

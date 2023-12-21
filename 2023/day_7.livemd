@@ -1,0 +1,72 @@
+```elixir
+Mix.install([{:kino, "~> 0.11.3"}])
+```
+
+## --- Day 7: Camel Cards ---
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+cards_input = Kino.Input.textarea("cards_input")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule CamelCards do
+  def deck("T"), do: 10
+  def deck("J"), do: 11
+  def deck("Q"), do: 12
+  def deck("K"), do: 13
+  def deck("A"), do: 14
+  def deck(card), do: String.to_integer(card)
+
+  def parse(input) do
+    input
+    |> Kino.Input.read()
+    |> String.split("\n")
+    |> Enum.map(&String.split(&1, " "))
+    |> Enum.map(fn [cards, bid] -> {cards, String.to_integer(bid)} end)
+  end
+
+  def part_one(input) do
+    input
+    |> parse()
+    |> Enum.map(fn {cards, bid} ->
+      {cards
+       |> String.graphemes()
+       |> Enum.map(&deck/1), bid}
+    end)
+    |> Enum.map(&hand_type/1)
+    |> Enum.sort_by(fn {score, cards, _bid} -> [score | cards] end)
+    |> Enum.with_index(1)
+    |> Enum.reduce(0, fn {{_rank, _cards, bid}, i}, acc -> acc + bid * i end)
+  end
+
+  def hand_type({cards, bid}) do
+    score =
+      cards
+      |> Enum.frequencies()
+      |> Map.values()
+      |> Enum.sort(:desc)
+      |> score_hand()
+
+    {score, cards, bid}
+  end
+
+  def score_hand([5 | _rest]), do: 7
+  def score_hand([4 | _rest]), do: 6
+  def score_hand([3, 2 | _rest]), do: 5
+  def score_hand([3 | _rest]), do: 4
+  def score_hand([2, 2 | _rest]), do: 3
+  def score_hand([2 | _rest]), do: 2
+  def score_hand(_), do: 1
+end
+```
+
+```elixir
+CamelCards.part_one(cards_input)
+```
+
