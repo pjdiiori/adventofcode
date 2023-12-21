@@ -4,8 +4,76 @@
 Mix.install([{:kino, "~> 0.11.3"}])
 ```
 
-## Untitled
+## Part One
 
 ```elixir
+test_input = Kino.Input.textarea("test_input")
+```
 
+```elixir
+score_sheet = Kino.Input.textarea("score_sheet")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule WaitForIt do
+  def part_one(input) do
+    input
+    |> parse()
+    |> Enum.map(fn {t, d} -> t |> hold_times() |> Enum.filter(&(&1 > d)) end)
+    |> Enum.map(&length/1)
+    |> Enum.product()
+  end
+
+  def hold_times(time) do
+    for milsec <- 0..time do
+      milsec * (time - milsec)
+    end
+  end
+
+  def parse(input) do
+    input
+    |> Kino.Input.read()
+    |> String.split("\n")
+    |> Enum.map(fn
+      "Time:" <> times -> split(times)
+      "Distance:" <> distances -> split(distances)
+    end)
+    |> Enum.zip()
+  end
+
+  def split(list) do
+    list
+    |> String.split()
+    |> Enum.map(&String.to_integer/1)
+  end
+
+  def join(list) do
+    list
+    |> String.split()
+    |> Enum.join()
+    |> String.to_integer()
+  end
+
+  def part_two(input) do
+    input
+    |> Kino.Input.read()
+    |> String.split("\n")
+    |> Enum.map(fn
+      "Time:" <> times -> join(times)
+      "Distance:" <> distances -> join(distances)
+    end)
+    |> (fn [t, d] -> t |> hold_times() |> Enum.filter(&(&1 > d)) end).()
+    |> length()
+  end
+end
+```
+
+```elixir
+WaitForIt.part_one(score_sheet)
+```
+
+```elixir
+WaitForIt.part_two(score_sheet)
 ```
