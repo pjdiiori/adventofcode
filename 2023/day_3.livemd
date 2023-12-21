@@ -1,8 +1,9 @@
+## --- Day 3: Gear Ratios ---
+
 ```elixir
 Mix.install([{:kino, "~> 0.11.3"}])
 ```
 
-## --- Day 3: Gear Ratios ---
 
 ### --- Part One ---
 

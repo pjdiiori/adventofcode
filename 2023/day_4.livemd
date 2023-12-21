@@ -1,8 +1,9 @@
+## --- Day 4: Scratchcards ---
+
 ```elixir
 Mix.install([{:kino, "~> 0.11.3"}])
 ```
 
-## --- Day 4: Scratchcards ---
 
 ### --- Part 1 ---
 

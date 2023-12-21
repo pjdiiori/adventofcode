@@ -1,8 +1,9 @@
+## --- Day 1: Trebuchet?! ---
+
 ```elixir
 Mix.install([{:kino, "~> 0.11.3"}])
 ```
 
-## --- Day 1: Trebuchet?! ---
 
 ### -- Part One --
 
