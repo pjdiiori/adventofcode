@@ -25,6 +25,9 @@ defmodule CamelCards do
   def deck("A"), do: 14
   def deck(card), do: String.to_integer(card)
 
+  def deck2("J"), do: 1
+  def deck2(card), do: deck(card)
+
   def parse(input) do
     input
     |> Kino.Input.read()
@@ -47,12 +50,30 @@ defmodule CamelCards do
     |> Enum.reduce(0, fn {{_rank, _cards, bid}, i}, acc -> acc + bid * i end)
   end
 
+  def part_two(input) do
+    input
+    |> parse()
+    |> Enum.map(fn {cards, bid} ->
+      {cards
+       |> String.graphemes()
+       |> Enum.map(&deck2/1), bid}
+    end)
+    |> Enum.map(&hand_type/1)
+    |> Enum.sort_by(fn {score, cards, _bid} -> [score | cards] end)
+    |> Enum.with_index(1)
+    |> Enum.reduce(0, fn {{_rank, _cards, bid}, i}, acc -> acc + bid * i end)
+  end
+
   def hand_type({cards, bid}) do
+    non_jokers = Enum.filter(cards, &(&1 > 1))
+    non_jokers = if length(non_jokers) == 0, do: cards, else: non_jokers
+
     score =
-      cards
+      non_jokers
       |> Enum.frequencies()
       |> Map.values()
       |> Enum.sort(:desc)
+      |> then(fn [top | rest] -> [top + (5 - length(non_jokers)) | rest] end)
       |> score_hand()
 
     {score, cards, bid}
@@ -70,4 +91,8 @@ end
 
 ```elixir
 CamelCards.part_one(cards_input)
+```
+
+```elixir
+CamelCards.part_two(cards_input)
 ```
