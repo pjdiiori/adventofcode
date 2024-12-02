@@ -1,0 +1,151 @@
+# --- Day 8: Haunted Wasteland ---
+
+```elixir
+Mix.install([{:kino, "~> 0.11.3"}])
+```
+
+## Inputs
+
+```elixir
+input = Kino.Input.textarea("input")
+```
+
+```elixir
+test_input2 = Kino.Input.textarea("test_input2")
+```
+
+```elixir
+test_input3 = Kino.Input.textarea("test_input3")
+```
+
+```elixir
+directions_input = Kino.Input.textarea("directions")
+```
+
+## Code
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule HauntedWasteland do
+  def part_one({[first_step | indexes], nodes} = input, starting_node, count) do
+    indexes
+    |> Enum.reduce_while(
+      {elem(nodes[starting_node], first_step), count},
+      fn i, {node, count} ->
+        nodes[node]
+        |> elem(i)
+        |> halt_or_cont(count)
+      end
+    )
+    |> then(fn
+      {"ZZZ", count} -> count
+      {node, count} -> part_one(input, node, count + 1)
+    end)
+  end
+
+  defp acc(simul_nodes, index, nodes), do: Enum.map(simul_nodes, &elem(nodes[&1], index))
+
+  def part_two(starting_nodes, {[first | indexes], nodes} = input, count) do
+    Enum.reduce_while(
+      indexes,
+      {acc(starting_nodes, first, nodes), count},
+      fn i, {simul_nodes, count} ->
+        next_nodes = acc(simul_nodes, i, nodes)
+
+        if Enum.all?(next_nodes, &String.ends_with?(&1, "Z")) do
+          IO.inspect("hit Z")
+          {:halt, {next_nodes, count + 1}}
+        else
+          {:cont, {next_nodes, count + 1}}
+        end
+      end
+    )
+    |> then(fn {simul_nodes, count} ->
+      if Enum.all?(simul_nodes, &String.ends_with?(&1, "Z")) do
+        count
+      else
+        peek(simul_nodes, count)
+        part_two(simul_nodes, input, count + 1)
+      end
+    end)
+  end
+
+  def peek(simul_nodes, count) do
+    l =
+      simul_nodes
+      |> Enum.filter(&String.ends_with?(&1, "Z"))
+      |> length()
+
+    if l >= 4, do: IO.inspect(simul_nodes, label: "count: #{count + 1}")
+  end
+
+  # def peek(simul_nodes, count, i) do
+  #   if String.ends_with?(Enum.at(simul_nodes, i), "Z") do
+  #     IO.inspect(simul_nodes, label: "index #{i}, count: #{count + 1}")
+  #   end
+  # end
+
+  def parse(input) do
+    [lr | nodes] =
+      input
+      |> Kino.Input.read()
+      |> String.split("\n", trim: true)
+
+    {parse_lr(lr), parse_nodes(nodes)}
+  end
+
+  def parse_lr(lr) do
+    lr
+    |> String.graphemes()
+    |> Enum.map(fn
+      "L" -> 0
+      "R" -> 1
+    end)
+  end
+
+  def parse_nodes(nodes) do
+    nodes
+    |> Enum.map(&String.split(&1, [" = ", "(", ", ", ")"], trim: true))
+    |> Enum.reduce(%{}, fn [key, l, r], acc -> Map.put(acc, key, {l, r}) end)
+  end
+
+  def starting_nodes(nodes) do
+    nodes
+    |> Map.keys()
+    |> Enum.filter(&String.ends_with?(&1, "A"))
+  end
+
+  def halt_or_cont("ZZZ", count), do: {:halt, {"ZZZ", count + 1}}
+  def halt_or_cont(next_node, count), do: {:cont, {next_node, count + 1}}
+
+  def traverse_multiple(current_nodes, all_nodes, directions, step \\ 0) do
+    IO.inspect(current_nodes)
+
+    if Enum.all?(current_nodes, &String.ends_with?(&1, "Z")) do
+      step
+    else
+      nodes =
+        for key <- current_nodes do
+          {left, right} = all_nodes[key]
+
+          if Enum.at(directions, rem(step, length(directions))) == 1,
+            do: elem(all_nodes[right], 1),
+            else: elem(all_nodes[left], 0)
+        end
+
+      traverse_multiple(nodes, all_nodes, directions, step + 1)
+    end
+  end
+end
+```
+
+```elixir
+import HauntedWasteland
+
+{lr, nodes} = input = parse(directions_input)
+
+nodes
+|> starting_nodes()
+|> part_two(input, 1)
+```
