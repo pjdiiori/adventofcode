@@ -83,4 +83,4 @@ puzzle_input
 
 ```
 
-<!-- livebook:{"offset":1715,"stamp":{"token":"XCP.-XARy3i1XASf2lQyDgapeyztUdfza8Kwy4MEbQDWIcSbh5YFLYJaII3EFPO9wJMg_if948cyNGPrqZ7ws61BrU9lJAxDyVTNBJZgSvoUieeZWjzMa_d76gOAj5PC","version":2}} -->
+<!-- livebook:{"offset":1715,"stamp":{"token":"XCP.yBF4lZlAkUxqfWUo_XOZEk_bmNVlJHPGDU0NwwGdbLGLZrzqmm7QGYgsMkZ_q1pjgu0SlOpzBUxQkzloySA8kEuABhpgT5JlNy1RqV2Q_9FPQ6lJI9fu2uXicxO5","version":2}} -->
