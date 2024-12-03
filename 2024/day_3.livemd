@@ -1,0 +1,64 @@
+# --- Day 3: Mull It Over ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiIzIiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNCJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2024", "3", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+defmodule MullItOver do
+  def mul_pattern(), do: ~r/mul\(\d+,\d+\)/
+  def mul_do_dont_pattern(), do: ~r/mul\(\d+,\d+\)|do\(\)|don't\(\)/
+
+  def parse(input, pattern) do
+    pattern
+    |> Regex.scan(input)
+    |> List.flatten()
+  end
+
+  def parse_product(command) do
+    ~r/\d+/
+    |> Regex.scan(command)
+    |> List.flatten()
+    |> Enum.map(&String.to_integer/1)
+    |> Enum.product()
+  end
+
+  def maybe_mull("don't()", {_, acc}), do: {:dont, acc}
+  def maybe_mull("do()", {_, acc}), do: {:do, acc}
+  def maybe_mull("mul" <> nums, {:do, acc}), do: {:do, parse_product(nums) + acc}
+  def maybe_mull("mul" <> _nums, {:dont, acc}), do: {:dont, acc}
+end
+```
+
+## Part 1
+
+```elixir
+import MullItOver
+
+puzzle_input
+|> parse(mul_pattern())
+|> Enum.map(&parse_product/1)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+import MullItOver
+
+puzzle_input
+|> parse(mul_do_dont_pattern())
+|> Enum.reduce({:do, 0}, &maybe_mull/2)
+|> elem(1)
+```
+
+<!-- livebook:{"offset":1379,"stamp":{"token":"XCP.lXUcGngRPHu_N0vGX_pEYG2INv-1Aj_j0WiJIx1d3iO8UMkZ_oSi7Uv8jCxGilLrPxDz0Bb5TKQnXFvOVit2YvXVGzwt5CBdKOf7XeOlDyPMIKBUtFVPAM2QXY4C","version":2}} -->
