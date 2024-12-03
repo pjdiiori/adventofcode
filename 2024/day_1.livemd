@@ -90,3 +90,5 @@ puzzle_input
 ```
 27267728
 ```
+
+<!-- livebook:{"offset":6019,"stamp":{"token":"XCP.TE7Tkozth32L_eLT1UQmdrHMf7W7acXId_97shOUKOgYE8xsNzaGszn7OSzn879A3pawAiKM2lCiPbj1GhgBh_A7-wJyeP0GjP_dg5mwTIAvhVcP0nEUVZ1uekVm","version":2}} -->
