@@ -61,4 +61,4 @@ puzzle_input
 |> elem(1)
 ```
 
-<!-- livebook:{"offset":1379,"stamp":{"token":"XCP.lXUcGngRPHu_N0vGX_pEYG2INv-1Aj_j0WiJIx1d3iO8UMkZ_oSi7Uv8jCxGilLrPxDz0Bb5TKQnXFvOVit2YvXVGzwt5CBdKOf7XeOlDyPMIKBUtFVPAM2QXY4C","version":2}} -->
+<!-- livebook:{"offset":1379,"stamp":{"token":"XCP.fkWf9yUTZXu3_YKi6VuRxDU9p0gmeSgUnLS9iN-6BNZYd2LE0A3TpVWFTlsTDWfdgFvplnjyqaIuvDH3E7EwcD4pIChv3rkVPbGvOt2vBFAx9yWrfkGQ_hZ3bz5y","version":2}} -->

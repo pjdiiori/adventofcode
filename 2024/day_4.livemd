@@ -1,0 +1,91 @@
+# --- Day 4: Ceres Search ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI0Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNCJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2024", "4", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+defmodule CeresSearch do
+  def pattern(), do: ~r/XMAS|SAMX/
+
+  def parse_rows(input) do
+    String.split(input, "\n", trim: true)
+  end
+
+  def matrix(input) do
+    input
+    |> parse_rows()
+    |> Enum.map(&String.graphemes/1)
+  end
+
+  def parse_columns(input) do
+    input
+    |> matrix()
+    |> Enum.zip_with(&Enum.join/1)
+  end
+
+  def parse_diagonal(matrix) do
+    for {row, idx} <- Enum.with_index(matrix),
+        {col, ^idx} <- Enum.with_index(row) do
+      col
+    end
+  end
+
+  def xmas_counter(row) do
+    pattern()
+    |> Regex.scan(row)
+    |> length()
+  end
+
+  def count_diagonals(matrix) do
+    Enum.reduce(matrix, {matrix, 0}, fn _row, {remainder, acc} ->
+      col = remainder |> parse_diagonal() |> Enum.join()
+      
+      {tl(remainder), acc + xmas_counter(col)}
+    end)
+    |> elem(1)
+  end
+end
+```
+
+```elixir
+import CeresSearch
+
+# test_input = Kino.Input.read(test_input)
+
+accross =
+  puzzle_input
+  |> parse_rows()
+  |> Enum.reduce(0, &(xmas_counter(&1) + &2))
+
+vertical =
+  puzzle_input
+  |> parse_columns()
+  |> Enum.reduce(0, &(xmas_counter(&1) + &2))
+
+matrix = puzzle_input |> matrix() |> tl() |> tl()
+
+diagonals =
+  Enum.reduce(matrix, {matrix, 0}, fn _row, {remainder, acc} ->
+    count = count_diagonals(remainder)
+    {Enum.map(remainder, &tl/1), count + acc}
+  end)
+  |> elem(1)
+
+accross + vertical + diagonals
+```
+
+<!-- livebook:{"offset":1862,"stamp":{"token":"XCP.RR3eHvCvGUawhjU4_4esEC5pxlgYACTVdoTE-rO-WZyvCnEUtzbADj9I-RAdpYrzitG9MHX52Obo5O_eg5cE7ZccZSJDzqbV2eO8EwxkH5e2sFNJJYMezWw2MHyE","version":2}} -->
