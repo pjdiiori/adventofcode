@@ -55,4 +55,4 @@ end)
 |> Enum.sum()
 ```
 
-<!-- livebook:{"offset":1313,"stamp":{"token":"XCP.5cRcpbBDXcWoBaa20mARECBlmzTFEZlkL13f07m0RabDvDREULCxV6xrDeavYfQxBM7tpyeCSNc7te1YeHpLgxubDNgCZvb9V2iTXEO2EZE_vYFs7_tgiUDDsgsd","version":2}} -->
+<!-- livebook:{"offset":1313,"stamp":{"token":"XCP.ZX4t2ka1XBrgFESY6TvVtnNtExMh-xSSJl3XDqm6oZWctp0IeIoh-eXkcR_A9HpR_M5t3KpyjV1UFVEzj3i1mZQPl0yV7lpj1iK11WLkmqS3T_X29p7Wa8GTXFog","version":2}} -->
