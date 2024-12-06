@@ -72,8 +72,14 @@ defmodule CeresSearch do
 
     down_count + accross_count
   end
+
+  def sam_or_mas?("S", "M"), do: true
+  def sam_or_mas?("M", "S"), do: true
+  def sam_or_mas?(_, _), do: false
 end
 ```
+
+## Part 1
 
 ```elixir
 import CeresSearch
@@ -102,4 +108,26 @@ diagonals =
 diagonals + accross + vertical
 ```
 
-<!-- livebook:{"offset":2176,"stamp":{"token":"XCP.TPDz004cLCfUkXs9K-VGxiHu_sNpL30CnY9lKjhwpINN69mblTStPcgROnV0cvSLQ9FDXIltuDFXhRkF9F3TueTM4WZNnvxKyUtrgBjycy5e9LWuskdWOb0aIhgq","version":2}} -->
+## Part 2
+
+```elixir
+grid =
+  puzzle_input
+  |> matrix()
+  |> Enum.with_index()
+  |> Enum.reduce(%{}, fn {row, row_i}, acc ->
+    for {letter, col_i} <- Enum.with_index(row), reduce: acc do
+      acc -> Map.put(acc, {row_i, col_i}, letter)
+    end
+  end)
+
+for {{row, col}, "A"} <- grid, row > 0 and col > 0, reduce: 0 do
+  acc ->
+    primary = sam_or_mas?(grid[{row - 1, col - 1}], grid[{row + 1, col + 1}])
+    secondary = sam_or_mas?(grid[{row - 1, col + 1}], grid[{row + 1, col - 1}])
+
+    if primary and secondary, do: acc + 1, else: acc
+end
+```
+
+<!-- livebook:{"offset":2850,"stamp":{"token":"XCP.HjAuLuMLJuVpQu6DW0seKe8_WQYSp-yu-PuispA9H3hceHhYgvtmBYt_aDOHzTv1gqRa5t89-du2sZwEX84WP9rdKGnMYJU4moGcAbv4dgZv-iI9d7IjhmabVzy0","version":2}} -->
