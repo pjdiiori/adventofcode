@@ -1,0 +1,86 @@
+# --- Day 6: Guard Gallivant ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI2Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNCJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2024", "6", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+input = Kino.Input.textarea("input")
+```
+
+```elixir
+test_input = Kino.Input.read(input)
+```
+
+```elixir
+defmodule GuardGallivant do
+  def parse(input) do
+    input
+    |> String.split("\n")
+    |> Enum.map(&String.graphemes/1)
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {row, row_i}, acc ->
+      for {point, col_i} <- Enum.with_index(row), reduce: acc do
+        acc -> Map.put(acc, {row_i, col_i}, point)
+      end
+    end)
+  end
+
+  def starting_pos(grid) do
+    grid
+    |> Enum.find(fn {_coords, point} -> point == "^" end)
+    |> elem(0)
+  end
+
+  def move("^", pos), do: move(".", pos)
+
+  def move(".", %{dir: :up} = pos),
+    do: {pos, Map.merge(pos, %{row: pos.row - 1, visited: visit(pos)})}
+
+  def move(".", %{dir: :right} = pos),
+    do: {pos, Map.merge(pos, %{col: pos.col + 1, visited: visit(pos)})}
+
+  def move(".", %{dir: :down} = pos),
+    do: {pos, Map.merge(pos, %{row: pos.row + 1, visited: visit(pos)})}
+
+  def move(".", %{dir: :left} = pos),
+    do: {pos, Map.merge(pos, %{col: pos.col - 1, visited: visit(pos)})}
+
+  def move("#", %{dir: :up} = pos), do: {pos, Map.merge(pos, %{row: pos.row + 1, dir: :right})}
+  def move("#", %{dir: :right} = pos), do: {pos, Map.merge(pos, %{col: pos.col - 1, dir: :down})}
+  def move("#", %{dir: :down} = pos), do: {pos, Map.merge(pos, %{row: pos.row - 1, dir: :left})}
+  def move("#", %{dir: :left} = pos), do: {pos, Map.merge(pos, %{col: pos.col + 1, dir: :up})}
+  def move(nil, _pos), do: nil
+
+  def visit(pos), do: MapSet.put(pos.visited, {pos.row, pos.col})
+end
+```
+
+## Part 1
+
+```elixir
+import GuardGallivant
+
+grid = parse(puzzle_input)
+{row, col} = starting_pos(grid)
+
+%{row: row, col: col, dir: :up, visited: MapSet.new()}
+|> Stream.unfold(&move(grid[{&1.row, &1.col}], &1))
+|> Enum.to_list()
+|> List.last()
+|> Map.get(:visited)
+|> MapSet.size()
+|> Kernel.+(1)
+
+```
+
+<!-- livebook:{"offset":2296,"stamp":{"token":"XCP.t3qyK_EFry338uqIz36N8pTm5IzQjyarc5wXW1DvtAzjfsFEMXpNR8Y2N0tw3QPmWslsDdNO7UP8jDt2ZvoDdkfLRxR4YG3Z9kJmylaec2Ll5hhzh6S_VspLxtPi","version":2}} -->
