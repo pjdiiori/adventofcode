@@ -17,36 +17,53 @@ Mix.install([{:kino_aoc, "~> 0.1"}])
 test_input = Kino.Input.textarea("test_input")
 ```
 
+```elixir
+defmodule PrintQueue do
+  def parse(input) do
+    input
+    |> String.split("\n\n")
+    |> Enum.map(&String.split(&1, "\n"))
+  end
+
+  def rule_set(rules) do
+    Enum.reduce(rules, %{}, fn rule, acc ->
+      [before_page, after_page] = String.split(rule, "|")
+
+      Map.update(acc, before_page, MapSet.new([after_page]), fn set ->
+        MapSet.put(set, after_page)
+      end)
+    end)
+  end
+
+  def valid_update?(update, rule_set) do
+    Enum.reduce_while(update, MapSet.new(), fn page, acc ->
+      if rule_set |> Map.get(page, MapSet.new()) |> MapSet.disjoint?(acc) do
+        {:cont, MapSet.put(acc, page)}
+      else
+        {:halt, false}
+      end
+    end)
+  end
+
+  # def fix_update(update, rule_set) do
+    
+  # end
+end
+```
+
 ## Part 1
 
 ```elixir
+import PrintQueue
+
 # test_input = Kino.Input.read(test_input)
 
-[rules, updates] =
-  puzzle_input
-  |> String.split("\n\n")
-  |> Enum.map(&String.split(&1, "\n"))
-
-rule_key =
-  Enum.reduce(rules, %{}, fn rule, acc ->
-    [first_page, other_page] = String.split(rule, "|")
-
-    Map.update(acc, first_page, MapSet.new([other_page]), fn set ->
-      MapSet.put(set, other_page)
-    end)
-  end)
+[rules, updates] = parse(puzzle_input)
+rule_set = rule_set(rules)
 
 updates
 |> Enum.map(&String.split(&1, ","))
-|> Enum.filter(fn update ->
-  Enum.reduce_while(update, MapSet.new(), fn page, acc ->
-    if rule_key |> Map.get(page, MapSet.new()) |> MapSet.disjoint?(acc) do
-      {:cont, MapSet.put(acc, page)}
-    else
-      {:halt, false}
-    end
-  end)
-end)
+|> Enum.filter(fn update -> valid_update?(update, rule_set) end)
 |> Enum.map(fn pages ->
   pages
   |> Enum.at(pages |> length() |> div(2))
@@ -55,4 +72,27 @@ end)
 |> Enum.sum()
 ```
 
-<!-- livebook:{"offset":1313,"stamp":{"token":"XCP.ZX4t2ka1XBrgFESY6TvVtnNtExMh-xSSJl3XDqm6oZWctp0IeIoh-eXkcR_A9HpR_M5t3KpyjV1UFVEzj3i1mZQPl0yV7lpj1iK11WLkmqS3T_X29p7Wa8GTXFog","version":2}} -->
+## Part 2
+
+```elixir
+test_input = Kino.Input.read(test_input)
+
+[rules, updates] = parse(test_input)
+rule_set = rule_set(rules)
+
+all_pages = Enum.map(updates, &String.split(&1, ","))
+valid_pages = Enum.filter(all_pages, fn update -> valid_update?(update, rule_set) end)
+invalid_pages = all_pages -- valid_pages
+
+fix_update = fn update, _rule_set ->
+  # pages =
+  for {page, i} <- Enum.with_index(update), reduce: %{} do
+    acc -> Map.put(acc, i, page)
+  end
+end
+
+# idk
+fix_update.(["97", "13", "75", "29", "47"], rule_set)
+```
+
+<!-- livebook:{"offset":2159,"stamp":{"token":"XCP.qkVWJ51dK1HBM5FJ2mY0l-uWTsNeArfQiloNx8Dt6SRGP2R1-shyKTkXF8pc_lcGSeBYCtPSAMcKcfrSzIcgW-IK1Oj1O8GApk4jghZ41O-pFb4jrsw00Qpaug9Y","version":2}} -->
