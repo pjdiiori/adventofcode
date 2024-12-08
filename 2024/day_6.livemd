@@ -1,7 +1,9 @@
 # --- Day 6: Guard Gallivant ---
 
 ```elixir
-Mix.install([{:kino_aoc, "~> 0.1"}])
+Mix.install([
+  {:kino_aoc, "~> 0.1"}
+])
 ```
 
 ## Setup
@@ -41,27 +43,50 @@ defmodule GuardGallivant do
     |> elem(0)
   end
 
-  def move("^", pos), do: move(".", pos)
+  def max_dimension(grid) do
+    grid
+    |> Enum.max_by(fn {{row_a, col_a}, _} -> row_a + col_a end)
+    |> elem(0)
+    |> elem(0)
+  end
 
-  def move(".", %{dir: :up} = pos),
-    do: {pos, Map.merge(pos, %{row: pos.row - 1, visited: visit(pos)})}
+  def move("^", pos, func), do: move(".", pos, func)
 
-  def move(".", %{dir: :right} = pos),
-    do: {pos, Map.merge(pos, %{col: pos.col + 1, visited: visit(pos)})}
+  def move(".", %{dir: :up} = pos, func),
+    do: {pos, pos |> Map.put(:row, pos.row - 1) |> Map.put(:visited, func.(pos))}
 
-  def move(".", %{dir: :down} = pos),
-    do: {pos, Map.merge(pos, %{row: pos.row + 1, visited: visit(pos)})}
+  def move(".", %{dir: :right} = pos, func),
+    do: {pos, pos |> Map.put(:col, pos.col + 1) |> Map.put(:visited, func.(pos))}
 
-  def move(".", %{dir: :left} = pos),
-    do: {pos, Map.merge(pos, %{col: pos.col - 1, visited: visit(pos)})}
+  def move(".", %{dir: :down} = pos, func),
+    do: {pos, pos |> Map.put(:row, pos.row + 1) |> Map.put(:visited, func.(pos))}
 
-  def move("#", %{dir: :up} = pos), do: {pos, Map.merge(pos, %{row: pos.row + 1, dir: :right})}
-  def move("#", %{dir: :right} = pos), do: {pos, Map.merge(pos, %{col: pos.col - 1, dir: :down})}
-  def move("#", %{dir: :down} = pos), do: {pos, Map.merge(pos, %{row: pos.row - 1, dir: :left})}
-  def move("#", %{dir: :left} = pos), do: {pos, Map.merge(pos, %{col: pos.col + 1, dir: :up})}
-  def move(nil, _pos), do: nil
+  def move(".", %{dir: :left} = pos, func),
+    do: {pos, pos |> Map.put(:col, pos.col - 1) |> Map.put(:visited, func.(pos))}
+
+  # obstacle
+  def move("#", %{dir: :up} = pos, _func),
+    do: {pos, Map.merge(pos, %{row: pos.row + 1, dir: :right})}
+
+  def move("#", %{dir: :right} = pos, _func),
+    do: {pos, Map.merge(pos, %{col: pos.col - 1, dir: :down})}
+
+  def move("#", %{dir: :down} = pos, _func),
+    do: {pos, Map.merge(pos, %{row: pos.row - 1, dir: :left})}
+
+  def move("#", %{dir: :left} = pos, _func),
+    do: {pos, Map.merge(pos, %{col: pos.col + 1, dir: :up})}
+
+  def move(nil, _pos, _func), do: nil
 
   def visit(pos), do: MapSet.put(pos.visited, {pos.row, pos.col})
+  def visit_dir(pos), do: MapSet.put(pos.visited, {pos.row, pos.col, pos.dir})
+
+  def loop_or_exit(%{row: 0, dir: :up}, _max, acc), do: acc
+  def loop_or_exit(%{col: 0, dir: :left}, _max, acc), do: acc
+  def loop_or_exit(%{row: row, dir: :down}, max, acc) when row == max, do: acc
+  def loop_or_exit(%{col: col, dir: :right}, max, acc) when col == max, do: acc
+  def loop_or_exit(_pos, _max, acc), do: acc + 1
 end
 ```
 
@@ -73,14 +98,49 @@ import GuardGallivant
 grid = parse(puzzle_input)
 {row, col} = starting_pos(grid)
 
-%{row: row, col: col, dir: :up, visited: MapSet.new()}
-|> Stream.unfold(&move(grid[{&1.row, &1.col}], &1))
+%{row: row, col: col, dir: :up, visited: MapSet.new([{row, col}])}
+|> Stream.unfold(fn pos -> move(grid[{pos.row, pos.col}], pos, &visit/1) end)
 |> Enum.to_list()
 |> List.last()
-|> Map.get(:visited)
+|> visit()
 |> MapSet.size()
-|> Kernel.+(1)
-
 ```
 
-<!-- livebook:{"offset":2296,"stamp":{"token":"XCP.t3qyK_EFry338uqIz36N8pTm5IzQjyarc5wXW1DvtAzjfsFEMXpNR8Y2N0tw3QPmWslsDdNO7UP8jDt2ZvoDdkfLRxR4YG3Z9kJmylaec2Ll5hhzh6S_VspLxtPi","version":2}} -->
+## Part 2
+
+```elixir
+# infinite loop means the guard returns to the same coordinates, going the same direction.
+frame = Kino.Frame.new() |> Kino.render()
+
+grid = parse(puzzle_input)
+max_dimension = max_dimension(grid)
+{row, col} = starting_pos = starting_pos(grid)
+
+guard_path =
+  %{row: row, col: col, dir: :up, visited: MapSet.new([{row, col}])}
+  |> Stream.unfold(fn pos -> move(grid[{pos.row, pos.col}], pos, &visit/1) end)
+  |> Enum.to_list()
+  |> List.last()
+  |> visit()
+
+for pos <- guard_path, pos != starting_pos, reduce: 0 do
+  acc ->
+    Kino.Frame.render(frame, acc)
+    
+    grid = Map.put(grid, pos, "#")
+
+    %{row: row, col: col, dir: :up, visited: MapSet.new([{row, col}])}
+    |> Stream.unfold(fn pos ->
+      if MapSet.member?(pos.visited, {pos.row, pos.col, pos.dir}) do
+        nil
+      else
+        move(grid[{pos.row, pos.col}], pos, &visit_dir/1)
+      end
+    end)
+    |> Enum.to_list()
+    |> List.last()
+    |> loop_or_exit(max_dimension, acc)
+end
+```
+
+<!-- livebook:{"offset":3986,"stamp":{"token":"XCP.joJ60LFdEd0dxhHeWF9CZcGVmgPgtZUaLAvX0C2PG494NkHrAA5Xvq6WufGORPnDLLU_Yyo1FFinFeh0H96TaCvSPpDVC7fhibUqyEwp0naAxX_K3sd3fJNCFOof","version":2}} -->
