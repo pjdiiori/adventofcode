@@ -57,14 +57,9 @@ defmodule BridgeRepair do
   def permutations(list), do: permutations(list, length(list))
   def permutations([], _), do: [[]]
   def permutations(_, 0), do: [[]]
+  def permutations(list, i), do: for(x <- list, y <- permutations(list, i - 1), do: [x | y])
 
-  def permutations(list, i) do
-    for x <- list, y <- permutations(list, i - 1), do: [x | y]
-  end
-
-  def concat(x, y) do
-    String.to_integer(Integer.to_string(x) <> Integer.to_string(y))
-  end
+  def concat(x, y), do: String.to_integer(Integer.to_string(x) <> Integer.to_string(y))
 end
 ```
 
@@ -79,7 +74,7 @@ puzzle_input
 |> Enum.map(fn
   {result, vars} ->
     vars
-    |> equations([&Kernel.+/2, &Kernel.*/2])
+    |> equations([&+/2, &*/2])
     |> Enum.reduce_while(0, fn equation, _acc ->
       calc = do_math(equation)
       if calc == result, do: {:halt, calc}, else: {:cont, 0}
@@ -100,7 +95,7 @@ puzzle_input
 |> Enum.map(fn
   {result, vars} ->
     vars
-    |> equations([&Kernel.+/2, &Kernel.*/2, &concat/2])
+    |> equations([&+/2, &*/2, &concat/2])
     |> Enum.reduce_while(0, fn equation, _acc ->
       calc = do_math(equation)
       if calc == result, do: {:halt, calc}, else: {:cont, 0}
@@ -109,4 +104,4 @@ end)
 |> Enum.sum()
 ```
 
-<!-- livebook:{"offset":2385,"stamp":{"token":"XCP.nJSDVDT4HpMA7dVTl5QB0NKjs60jFHR5SpBQ7dMyF5_JpNJNflzWjrtrz2xvktaigT7Uc0NTkh-mzCYG0fdI-Ud-a13CRPuuT-AloWE1kLf_xQTzfuXaUvTUuz2_","version":2}} -->
+<!-- livebook:{"offset":2341,"stamp":{"token":"XCP.wfleflLQCehqQidA4sNkTwflwrLVeyve9_UKiQZJFkxzenneZ72N-433l9ZKB7piKTCYbmWOpyduuo8tq-BJwtDG0AsRRdELI5WXgiHwWCuTT5fTGDnJat0slJVR","version":2}} -->
