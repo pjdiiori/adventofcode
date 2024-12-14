@@ -1,0 +1,112 @@
+# --- Day 7: Bridge Repair ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI3Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNCJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2024", "7", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test = Kino.Input.textarea("test")
+```
+
+```elixir
+defmodule BridgeRepair do
+  import String, only: [split: 3, split: 2, to_integer: 1]
+
+  def parse(input) do
+    input
+    |> split("\n")
+    |> Enum.map(fn line ->
+      [result, vars] = split(line, ":")
+
+      {to_integer(result), vars |> split(" ", trim: true) |> Enum.map(&to_integer/1)}
+    end)
+  end
+
+  def equations(vars, funcs) do
+    operations = permutations(funcs, length(vars) - 1)
+
+    for ops <- operations do
+      vars
+      |> Enum.zip(ops)
+      |> Kernel.++([List.last(vars)])
+      |> Enum.map(fn
+        {_, _} = t -> Tuple.to_list(t)
+        v -> v
+      end)
+      |> List.flatten()
+    end
+  end
+
+  def do_math(equation) do
+    [x, func, y | rest] = equation
+
+    rest
+    |> Enum.chunk_every(2)
+    |> Enum.reduce(func.(x, y), fn [func, n], acc -> func.(acc, n) end)
+  end
+
+  def permutations(list), do: permutations(list, length(list))
+  def permutations([], _), do: [[]]
+  def permutations(_, 0), do: [[]]
+
+  def permutations(list, i) do
+    for x <- list, y <- permutations(list, i - 1), do: [x | y]
+  end
+
+  def concat(x, y) do
+    String.to_integer(Integer.to_string(x) <> Integer.to_string(y))
+  end
+end
+```
+
+## Part 1
+
+```elixir
+import BridgeRepair
+test_input = Kino.Input.read(test)
+
+puzzle_input
+|> parse()
+|> Enum.map(fn
+  {result, vars} ->
+    vars
+    |> equations([&Kernel.+/2, &Kernel.*/2])
+    |> Enum.reduce_while(0, fn equation, _acc ->
+      calc = do_math(equation)
+      if calc == result, do: {:halt, calc}, else: {:cont, 0}
+    end)
+end)
+|> Enum.sum()
+
+```
+
+## Part 2
+
+```elixir
+import BridgeRepair
+test_input = Kino.Input.read(test)
+
+puzzle_input
+|> parse()
+|> Enum.map(fn
+  {result, vars} ->
+    vars
+    |> equations([&Kernel.+/2, &Kernel.*/2, &concat/2])
+    |> Enum.reduce_while(0, fn equation, _acc ->
+      calc = do_math(equation)
+      if calc == result, do: {:halt, calc}, else: {:cont, 0}
+    end)
+end)
+|> Enum.sum()
+```
+
+<!-- livebook:{"offset":2385,"stamp":{"token":"XCP.nJSDVDT4HpMA7dVTl5QB0NKjs60jFHR5SpBQ7dMyF5_JpNJNflzWjrtrz2xvktaigT7Uc0NTkh-mzCYG0fdI-Ud-a13CRPuuT-AloWE1kLf_xQTzfuXaUvTUuz2_","version":2}} -->
