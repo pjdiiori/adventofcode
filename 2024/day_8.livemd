@@ -70,6 +70,8 @@ defmodule ResonantCollinearity do
 end
 ```
 
+## Part 1
+
 ```elixir
 import ResonantCollinearity
 
@@ -93,4 +95,4 @@ end
 |> MapSet.size()
 ```
 
-<!-- livebook:{"offset":2560,"stamp":{"token":"XCP.FFDI_6z6-Jw9Zy455cIEI1IpMnCFej1S25DtpBNYKK-_9rMLRtlyR49rMjzsSZeZcCq3VAAtRBjTX9ZYtXSG0kuya7z8asu4l7dnlHXqAOI-KQfIUYjPg-u1sS8D","version":2}} -->
+<!-- livebook:{"offset":2571,"stamp":{"token":"XCP.zeIpmj741zdNl9XJoKDxwVFvfZYQ7I8iQNWMH6zrUIigSAXddzgXoms7Ox1jZK_jSqr7n1US-gnNf-IIEafj33LDZBjl55yJra2LO4UqNQH_3ik0wwrHjS5MABgK","version":2}} -->
