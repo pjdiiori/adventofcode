@@ -1,0 +1,96 @@
+# --- Day 8: Resonant Collinearity ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}, {:kino_explorer, "~> 0.1.20"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI4Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNCJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2024", "8", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+input = Kino.Input.textarea("input")
+```
+
+```elixir
+defmodule ResonantCollinearity do
+  def parse(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.graphemes/1)
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {row, row_i}, acc ->
+      for {point, col_i} <- Enum.with_index(row), point != ".", reduce: acc do
+        acc -> Map.put(acc, {row_i, col_i}, point)
+      end
+    end)
+  end
+
+  def max_bounds(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> length()
+    |> Kernel.-(1)
+  end
+
+  def in_bounds?({row, col}, max) do
+    row in 0..max and col in 0..max
+  end
+
+  def map_tl(map) do
+    with [hd | _tl] <- Map.keys(map) do
+      Map.delete(map, hd)
+    end
+  end
+
+  # a bottom right b top left
+  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra >= rb and ca >= cb do
+    {{ra + r_diff, ca + c_diff}, {rb - r_diff, cb - c_diff}}
+  end
+
+  # a bottom left b top right
+  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra >= rb and ca <= cb do
+    {{ra + r_diff, ca - c_diff}, {rb - r_diff, cb + c_diff}}
+  end
+
+  # a top right b bottom left
+  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra <= rb and ca >= cb do
+    {{ra - r_diff, ca + c_diff}, {rb + r_diff, cb - c_diff}}
+  end
+
+  # a top left b bottom right
+  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra <= rb and ca <= cb do
+    {{ra - r_diff, ca - c_diff}, {rb + r_diff, cb + c_diff}}
+  end
+end
+```
+
+```elixir
+import ResonantCollinearity
+
+test = Kino.Input.read(input)
+
+grid = parse(puzzle_input)
+max = max_bounds(puzzle_input)
+
+for {{ra, ca}, pa} <- grid, reduce: MapSet.new() do
+  set ->
+    for {{rb, cb}, pb} <- grid, pa == pb, {ra, ca} != {rb, cb}, reduce: set do
+      set ->
+        r_diff = abs(ra - rb)
+        c_diff = abs(ca - cb)
+        {top_node, bottom_node} = nodes({ra, ca}, {rb, cb}, {r_diff, c_diff})
+
+        set = if in_bounds?(top_node, max), do: MapSet.put(set, top_node), else: set
+        if in_bounds?(bottom_node, max), do: MapSet.put(set, bottom_node), else: set
+    end
+end
+|> MapSet.size()
+```
+
+<!-- livebook:{"offset":2560,"stamp":{"token":"XCP.FFDI_6z6-Jw9Zy455cIEI1IpMnCFej1S25DtpBNYKK-_9rMLRtlyR49rMjzsSZeZcCq3VAAtRBjTX9ZYtXSG0kuya7z8asu4l7dnlHXqAOI-KQfIUYjPg-u1sS8D","version":2}} -->

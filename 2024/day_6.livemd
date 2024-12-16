@@ -143,4 +143,4 @@ for pos <- guard_path, pos != starting_pos, reduce: 0 do
 end
 ```
 
-<!-- livebook:{"offset":3986,"stamp":{"token":"XCP.joJ60LFdEd0dxhHeWF9CZcGVmgPgtZUaLAvX0C2PG494NkHrAA5Xvq6WufGORPnDLLU_Yyo1FFinFeh0H96TaCvSPpDVC7fhibUqyEwp0naAxX_K3sd3fJNCFOof","version":2}} -->
+<!-- livebook:{"offset":3986,"stamp":{"token":"XCP.obTD2-DHUA2aH2natdNuXEbLvXsJ5jxyWHCDHsMWEiMD00BJrDdnnjKFbmQOuPJjicgn2AnH8-ceurzCDOJh6kRb0h0nWMq5VgtXrFgLMn9RYE9uxql0sfoDZjjl","version":2}} -->
