@@ -38,6 +38,10 @@ defmodule ResonantCollinearity do
     |> Kernel.-(1)
   end
 
+  def maybe_add_to_set(set, node, max) do
+    if in_bounds?(node, max), do: MapSet.put(set, node), else: set
+  end
+
   def in_bounds?({row, col}, max) do
     row in 0..max and col in 0..max
   end
@@ -49,23 +53,23 @@ defmodule ResonantCollinearity do
   end
 
   # a bottom right b top left
-  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra >= rb and ca >= cb do
-    {{ra + r_diff, ca + c_diff}, {rb - r_diff, cb - c_diff}}
+  def nodes([{ra, ca}, {rb, cb}], {r_diff, c_diff}) when ra >= rb and ca >= cb do
+    [{ra + r_diff, ca + c_diff}, {rb - r_diff, cb - c_diff}]
   end
 
   # a bottom left b top right
-  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra >= rb and ca <= cb do
-    {{ra + r_diff, ca - c_diff}, {rb - r_diff, cb + c_diff}}
+  def nodes([{ra, ca}, {rb, cb}], {r_diff, c_diff}) when ra >= rb and ca <= cb do
+    [{ra + r_diff, ca - c_diff}, {rb - r_diff, cb + c_diff}]
   end
 
   # a top right b bottom left
-  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra <= rb and ca >= cb do
-    {{ra - r_diff, ca + c_diff}, {rb + r_diff, cb - c_diff}}
+  def nodes([{ra, ca}, {rb, cb}], {r_diff, c_diff}) when ra <= rb and ca >= cb do
+    [{ra - r_diff, ca + c_diff}, {rb + r_diff, cb - c_diff}]
   end
 
   # a top left b bottom right
-  def nodes({ra, ca}, {rb, cb}, {r_diff, c_diff}) when ra <= rb and ca <= cb do
-    {{ra - r_diff, ca - c_diff}, {rb + r_diff, cb + c_diff}}
+  def nodes([{ra, ca}, {rb, cb}], {r_diff, c_diff}) when ra <= rb and ca <= cb do
+    [{ra - r_diff, ca - c_diff}, {rb + r_diff, cb + c_diff}]
   end
 end
 ```
@@ -86,13 +90,46 @@ for {{ra, ca}, pa} <- grid, reduce: MapSet.new() do
       set ->
         r_diff = abs(ra - rb)
         c_diff = abs(ca - cb)
-        {top_node, bottom_node} = nodes({ra, ca}, {rb, cb}, {r_diff, c_diff})
+        [a_node, b_node] = nodes([{ra, ca}, {rb, cb}], {r_diff, c_diff})
 
-        set = if in_bounds?(top_node, max), do: MapSet.put(set, top_node), else: set
-        if in_bounds?(bottom_node, max), do: MapSet.put(set, bottom_node), else: set
+        set
+        |> maybe_add_to_set(a_node, max)
+        |> maybe_add_to_set(b_node, max)
     end
 end
 |> MapSet.size()
 ```
 
-<!-- livebook:{"offset":2571,"stamp":{"token":"XCP.zeIpmj741zdNl9XJoKDxwVFvfZYQ7I8iQNWMH6zrUIigSAXddzgXoms7Ox1jZK_jSqr7n1US-gnNf-IIEafj33LDZBjl55yJra2LO4UqNQH_3ik0wwrHjS5MABgK","version":2}} -->
+## Part 2
+
+```elixir
+import ResonantCollinearity
+
+test = Kino.Input.read(input)
+
+grid = parse(puzzle_input)
+max = max_bounds(puzzle_input)
+
+for {{ra, ca}, pa} <- grid, reduce: MapSet.new() do
+  set ->
+    for {{rb, cb}, pb} <- grid, pa == pb, {ra, ca} != {rb, cb}, reduce: set do
+      set ->
+        r_diff = abs(ra - rb)
+        c_diff = abs(ca - cb)
+
+        start_nodes = nodes([{ra, ca}, {rb, cb}], {r_diff, c_diff})
+
+        set =
+          Enum.reduce(start_nodes ++ [{ra, ca}, {rb, cb}], set, &maybe_add_to_set(&2, &1, max))
+
+        Enum.reduce(0..49, {start_nodes, set}, fn _i, {prev_nodes, set} ->
+          new_nodes = nodes(prev_nodes, {r_diff, c_diff})
+          {new_nodes, Enum.reduce(new_nodes, set, &maybe_add_to_set(&2, &1, max))}
+        end)
+        |> elem(1)
+    end
+end
+|> MapSet.size()
+```
+
+<!-- livebook:{"offset":3430,"stamp":{"token":"XCP.vWdkElu4Z2__4MX-ETpuFv4WdXLR1tFzx8yiHEovdjv51BIlofuCp-T9afQW-rYXnPcpvd6mGzYauAhxM0GcYd2lcGxXdiSBTMs8Z2Pl0vykNAmIkAylQLEMUxbP","version":2}} -->
