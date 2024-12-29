@@ -95,4 +95,4 @@ end
 fix_update.(["97", "13", "75", "29", "47"], rule_set)
 ```
 
-<!-- livebook:{"offset":2159,"stamp":{"token":"XCP.qkVWJ51dK1HBM5FJ2mY0l-uWTsNeArfQiloNx8Dt6SRGP2R1-shyKTkXF8pc_lcGSeBYCtPSAMcKcfrSzIcgW-IK1Oj1O8GApk4jghZ41O-pFb4jrsw00Qpaug9Y","version":2}} -->
+<!-- livebook:{"offset":2159,"stamp":{"token":"XCP.kcn2Vopy--iihSkQVK2KqdJj6tf7v_92eKAfJArFNZA1L0hSg8SD9pxrYZzjOOnkZ4cm_aX2a4cI7JZQx5NpEpfaY1RFrLjTmQultheGX0C3FVj6StT9KZ8DjzM6","version":2}} -->

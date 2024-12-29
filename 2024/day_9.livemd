@@ -1,0 +1,208 @@
+# --- Day 9: Disk Fragmenter ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI5Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNCJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2024", "9", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+input = Kino.Input.textarea("test")
+```
+
+```elixir
+test = Kino.Input.read(input)
+```
+
+```elixir
+defmodule DiskFragmenter do
+  def disk_map(input) do
+    String.graphemes(input)
+  end
+
+  def blocks(disk_map, block_mapper) do
+    for file_or_space <- disk_map, reduce: {[], 0, :even} do
+      {blocks, i, :even} ->
+        file = "#{i}" |> Stream.duplicate(String.to_integer(file_or_space)) |> block_mapper.()
+        {blocks ++ [file], i + 1, :odd}
+
+      {blocks, i, :odd} ->
+        space = String.to_integer(file_or_space)
+        {blocks ++ [space], i, :even}
+    end
+    |> elem(0)
+    |> List.flatten()
+  end
+
+  def move_file_blocks_part_1(blocks) do
+    take_from = take_from(blocks)
+    target_length = length(take_from)
+
+    Enum.reduce_while(blocks, {[], take_from}, fn
+      f, {acc, take_from} ->
+        cond do
+          length(acc) == target_length ->
+            {:halt, acc}
+
+          is_binary(f) ->
+            {:cont, {acc ++ [f], take_from}}
+
+          true ->
+            taken = Enum.take(take_from, f)
+            {:cont, {acc ++ taken, take_from -- taken}}
+        end
+    end)
+  end
+
+  def move_file_blocks_part_2(blocks) do
+    {blocks, max_index} =
+      for b <- blocks, b != 0, reduce: {%{}, -1} do
+        {acc, i} ->
+          {Map.put(acc, i + 1, b), i + 1}
+      end
+
+    # start from the end
+    Enum.reduce_while(max_index..0, blocks, fn file_i, acc ->
+      case Map.get(acc, file_i) do
+        file when is_binary(file) ->
+          file_size = String.length(file)
+
+          # start from the beginning
+          {:cont,
+           Enum.reduce_while(0..max_index, acc, fn space_i, acc ->
+             if space_i > file_i do
+               {:halt, acc}
+             else
+               case Map.get(acc, space_i) do
+                 # if there's a file already there, 
+                 existing_file when is_binary(existing_file) ->
+                   # skip it and keep going
+                   {:cont, acc}
+
+                 # replacement happened, but there's space left over
+                 {existing_file, space} ->
+                   cond do
+                     space < file_size ->
+                       {:cont, acc}
+
+                     space == file_size ->
+                       {:halt,
+                        acc
+                        # overwrite the tuple with concatenated files
+                        |> Map.put(space_i, existing_file <> file)
+                        # backfill previous file position with space equal to file_size
+                        |> Map.put(file_i, file_size)}
+
+                     space > file_size ->
+                       remaining_space = space - file_size
+
+                       {:halt,
+                        acc
+                        # replace tuple with concatenated files + remaining space in tuple
+                        |> Map.put(space_i, {existing_file <> file, remaining_space})
+                        # backfill previous file position with space equal to file_size
+                        |> Map.put(file_i, file_size)}
+                   end
+
+                 # when there's not enough space
+                 space when space < file_size ->
+                   # skip it and keep going
+                   {:cont, acc}
+
+                 # if there's exactly enough space
+                 space when space == file_size ->
+                   {:halt,
+                    acc
+                    # replace space with file
+                    |> Map.put(space_i, file)
+                    # backfill previous file position with space equal to file_size
+                    |> Map.put(file_i, file_size)}
+
+                 # if there's more space than needed
+                 space when space > file_size ->
+                   remaining_space = space - file_size
+
+                   {:halt,
+                    acc
+                    # replace space with file + extra space in tuple
+                    |> Map.put(space_i, {file, remaining_space})
+                    # backfill previous file position with space equal to file_size
+                    |> Map.put(file_i, file_size)}
+               end
+             end
+           end)}
+
+        _space ->
+          {:cont, acc}
+      end
+    end)
+  end
+
+  def reindex(filesystem) do
+    # frame = Kino.Frame.new() |> Kino.render()
+    max = filesystem |> Enum.max_by(&elem(&1, 0)) |> elem(0)
+    split = &String.graphemes(&1)
+    dots = &for(_i <- 1..&1, do: ".")
+
+    # start from index 0 so we iterate in order
+    Enum.reduce(0..max, [], fn
+      i, acc ->
+        # Kino.Frame.render(frame, i)
+
+        case Map.get(filesystem, i) do
+          file when is_binary(file) -> acc ++ split.(file)
+          {file, space} -> acc ++ split.(file) ++ dots.(space)
+          space -> acc ++ dots.(space)
+        end
+    end)
+  end
+
+  def take_from(blocks) do
+    blocks
+    |> Enum.filter(&is_binary/1)
+    |> Enum.reverse()
+  end
+
+  def checksum(files) do
+    for {file, i} <- Enum.with_index(files), file != ".", reduce: 0 do
+      acc ->
+        acc + String.to_integer(file) * i
+    end
+  end
+end
+```
+
+## Part 1
+
+```elixir
+import DiskFragmenter
+
+puzzle_input
+|> disk_map()
+|> blocks(&Enum.to_list/1)
+|> move_file_blocks_part_1()
+|> checksum()
+```
+
+## Part 2
+
+```elixir
+import DiskFragmenter
+
+puzzle_input
+|> disk_map()
+|> blocks(&Enum.join/1)
+|> move_file_blocks_part_2()
+|> reindex()
+|> checksum()
+
+```
+
+<!-- livebook:{"offset":5814,"stamp":{"token":"XCP.LEj72VkAHag-2oeWG13aUlZaYy9UkSGu8nlcCmnhVExqsyxWiSaNRsn5CMvKGViPWBYKYWYykGhklJFAVMistPmauKKaEhC_wOUbuYakxMegap28sbKoFgyvtlFS","version":2}} -->
