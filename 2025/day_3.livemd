@@ -1,0 +1,91 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# --- Day 3: Lobby ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Part 1
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiIzIiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNSJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2025", "3", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test_input = "987654321111111\n811111111111119\n234234234234278\n818181911112111"
+```
+
+```elixir
+defmodule Lobby do
+  def part_1(input) do
+    input
+    |> parse_input()
+    |> Enum.map(&max_joltage_1/1)
+    |> Enum.sum()
+  end
+
+  def parse_input(input) do
+    input
+    |> String.split()
+    |> Enum.map(&for(s <- String.graphemes(&1), do: String.to_integer(s)))
+  end
+
+  def max_joltage_1(bank) do
+    {_last, pop_bank} = List.pop_at(bank, -1)
+    max_battery = Enum.max(pop_bank)
+    max_battery_index = Enum.find_index(bank, &(&1 == max_battery)) + 1
+    submax_battery = bank |> Enum.slice(max_battery_index..-1//1) |> Enum.max()
+
+    Integer.undigits([max_battery, submax_battery])
+  end
+
+  def max_joltage_2(bank) do
+    battery_range = 11..0//-1
+    max_index = length(bank) - 1
+    bank = Enum.reverse(bank)
+
+    Enum.reduce(battery_range, {[], max_index}, fn battery_index, {joltages, max_index} ->
+      slice_range = battery_index..max_index
+      {max_joltage_index, max_joltage} = max_with_index(bank, slice_range)
+      {[max_joltage | joltages], max_joltage_index - 1}
+    end)
+    |> elem(0)
+    |> Enum.reverse()
+    |> Integer.undigits()
+  end
+
+  @spec max_with_index([integer()], Range.t()) :: {index :: integer(), max_joltage :: integer()}
+  defp max_with_index(bank, slice_range) do
+    bank
+    |> Enum.with_index(&{&2, &1})
+    |> Enum.slice(slice_range)
+    |> Enum.reverse()
+    |> Enum.max_by(&elem(&1, 1))
+  end
+
+  def part_2(input) do
+    input
+    |> parse_input()
+    |> Enum.map(&max_joltage_2/1)
+    |> Enum.sum()
+  end
+end
+```
+
+```elixir
+# Lobby.part_1(test_input)
+Lobby.part_1(puzzle_input)
+```
+
+## Part 2
+
+```elixir
+# Lobby.part_2(test_input)
+Lobby.part_2(puzzle_input)
+```
+
+<!-- livebook:{"offset":2203,"stamp":{"token":"XCP.Ml5pRgSAY5JAJVu-yTt573cxQfcg5bbdpqz9GM6YZuaQOobOxH543OvR0B-HeiMbfq8R8ub_c0_V6oMnO1mel2oMOpw9KP-Ox7cOd0i03h37pg-WhJM8Tb_sWBTt","version":2}} -->
