@@ -15,21 +15,8 @@ Mix.install([{:kino_aoc, "~> 0.1"}])
   KinoAOC.download_puzzle("2025", "2", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
 ```
 
-<!-- livebook:{"output":true} -->
-
-```
-{:ok,
- "5959566378-5959623425,946263-1041590,7777713106-7777870316,35289387-35394603,400-605,9398763-9592164,74280544-74442206,85684682-85865536,90493-179243,202820-342465,872920-935940,76905692-76973065,822774704-822842541,642605-677786,3759067960-3759239836,1284-3164,755464-833196,52-128,3-14,30481-55388,844722790-844967944,83826709-83860070,9595933151-9595993435,4216-9667,529939-579900,1077949-1151438,394508-486310,794-1154,10159-17642,5471119-5683923,16-36,17797-29079,187-382"}
-```
-
 ```elixir
 test_input = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124"
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-"11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124"
 ```
 
 ```elixir
@@ -127,21 +114,9 @@ defmodule GiftShop do
 end
 ```
 
-<!-- livebook:{"output":true} -->
-
-```
-{:module, GiftShop, <<70, 79, 82, 49, 0, 0, 23, ...>>, {:has_repeating_digits?, 2}}
-```
-
 ```elixir
 # GiftShop.part_1(test_input)
 GiftShop.part_1(puzzle_input)
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-19605500130
 ```
 
 ## Part 2
@@ -151,10 +126,4 @@ GiftShop.part_1(puzzle_input)
 GiftShop.part_2(puzzle_input)
 ```
 
-<!-- livebook:{"output":true} -->
-
-```
-36862281418
-```
-
-<!-- livebook:{"offset":3938,"stamp":{"token":"XCP.hbgtpn1YcjQg_iSt0W0YmrP4ucYEHwQ_BMIHpczfIdO3Mgat4Cras-H0Q3IHNhIJl50L_-JQDYeVulFLT8yrRLilJg-vcB3ID6Sml4AKU5hA5qssVM-NdhBKTqan","version":2}} -->
+<!-- livebook:{"offset":2959,"stamp":{"token":"XCP.S46qYbOYcDBm1suuT0ov-VP5aXK84IrUAOmyaA1LdhB9f7mpQ6e5oU0sz3RgSRjb3so0AgOhsQh8XfsRw1Wr2zK8dwm8IZj4qrDkIuHGKyW2-zaIfIxD34bur0e1","version":2}} -->

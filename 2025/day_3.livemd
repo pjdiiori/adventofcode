@@ -88,4 +88,4 @@ Lobby.part_1(puzzle_input)
 Lobby.part_2(puzzle_input)
 ```
 
-<!-- livebook:{"offset":2203,"stamp":{"token":"XCP.Ml5pRgSAY5JAJVu-yTt573cxQfcg5bbdpqz9GM6YZuaQOobOxH543OvR0B-HeiMbfq8R8ub_c0_V6oMnO1mel2oMOpw9KP-Ox7cOd0i03h37pg-WhJM8Tb_sWBTt","version":2}} -->
+<!-- livebook:{"offset":2203,"stamp":{"token":"XCP.5T3qgEsB5qdk_Vyf8wFj41H-RUDgszRctahtI70wZx6RjL9_UinUG1Rupq46H60JBbAAAWnxQRhrIC0xyzcsoblES9wq1jQ8jzHBoaRwP2Lh9T4OOLZEN7zG8l4p","version":2}} -->
