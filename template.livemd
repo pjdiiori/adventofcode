@@ -1,6 +1,6 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# --- Title ---
+# --- AOC Template ---
 
 ```elixir
 Mix.install([{:kino_aoc, "~> 0.1"}])
@@ -31,4 +31,4 @@ Mix.install([{:kino_aoc, "~> 0.1"}])
 
 ```
 
-<!-- livebook:{"offset":544,"stamp":{"token":"XCP.aC6gEmZCXaTqVVcVwaicPuVPASq2z5xy4VdFR2A9-_I_EVRdF6KAVmahCKhdA5oKODnUxwZxzxeEKFcBH0UzXWJ2muFwaVPYdL0QnLm1ScoEHFIocP8WElSpcKJE","version":2}} -->
+<!-- livebook:{"offset":551,"stamp":{"token":"XCP.5r0_OSMX6K1RmwDFukKYH_j4MoWGdl7ERhsuf9FhY1zpZVnJPIHNqIEskxNXwiNsf4SrSYw6COMI54TRZlxe_NswDU8pj50zHL4_WX4MFd1_DWNO297rboMHrW00","version":2}} -->
