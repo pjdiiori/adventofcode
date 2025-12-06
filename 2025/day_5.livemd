@@ -1,0 +1,79 @@
+# --- Day 5: Cafeteria ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI1Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNSJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2025", "5", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+test_input = Kino.Input.read(test_input)
+```
+
+```elixir
+defmodule Cafeteria do
+  def parse_db(input) do
+    [ranges, ingr_ids] = String.split(input, "\n\n")
+
+    fresh_ranges =
+      for range <- String.split(ranges) do
+        [low, high] = range |> String.split("-") |> Enum.map(&String.to_integer/1)
+        low..high
+      end
+
+    ingr_ids = ingr_ids |> String.split() |> Enum.map(&String.to_integer/1)
+
+    {fresh_ranges, ingr_ids}
+  end
+
+  def ranges_overlap?(r1, r2), do: !Range.disjoint?(r1, r2)
+  def merge_ranges(r1, r2), do: min(r1.first, r2.first)..max(r1.last, r2.last)
+end
+```
+
+## Part 1
+
+```elixir
+import Cafeteria
+
+# {fresh_ranges, ingr_ids} = Cafeteria.parse_db(test_input)
+{fresh_ranges, ingr_ids} = Cafeteria.parse_db(puzzle_input)
+
+Enum.sum_by(ingr_ids, fn id ->
+  if Enum.any?(fresh_ranges, &(id in &1)), do: 1, else: 0
+end)
+```
+
+## Part 2
+
+```elixir
+import Cafeteria
+
+# {fresh_ranges, _ingr_ids} = Cafeteria.parse_db(test_input)
+{fresh_ranges, _ingr_ids} = Cafeteria.parse_db(puzzle_input)
+
+[first_range | fresh_ranges] = Enum.sort(fresh_ranges)
+
+fresh_ranges
+|> Enum.reduce([first_range], fn next_range, [previous_range | rest] = acc ->
+  if ranges_overlap?(previous_range, next_range) do
+    [merge_ranges(previous_range, next_range) | rest]
+  else
+    [next_range | acc]
+  end
+end)
+|> Enum.sum_by(&Range.size/1)
+```
+
+<!-- livebook:{"offset":1856,"stamp":{"token":"XCP.c8Ijii0NUJuWyUR3jyVL6pg3OitSIvJqwBQMRPW_Jsmi5MRHvGTUqcrWRsqZpEM80c3FHIyN0QUDlE9iaH5p0g7rMm7IRt--62xiavsth9bDEtWHeyi3oyusc3-y","version":2}} -->
