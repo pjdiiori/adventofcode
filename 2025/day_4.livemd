@@ -1,0 +1,111 @@
+# --- Day 4: Printing Department ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI0Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNSJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2025", "4", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+test_input = Kino.Input.read(test_input)
+```
+
+```elixir
+defmodule PrintingDeptartment do
+  @cardinal_directions [:n, :ne, :e, :se, :s, :sw, :w, :nw]
+
+  def parse_to_grid(input) do
+    input
+    |> String.split()
+    |> Enum.with_index(&{&2, &1})
+    |> Enum.map(fn {index, rolls} ->
+      {index, rolls |> String.graphemes() |> Enum.with_index(&{&2, &1}) |> Map.new()}
+    end)
+    |> Map.new()
+  end
+
+  def max_iterations(input) do
+    ~r(@)
+    |> Regex.scan(input)
+    |> List.flatten()
+    |> length()
+  end
+
+  def cardinal_directions(), do: @cardinal_directions
+
+  @spec check_adjacent(map(), integer(), integer(), atom()) :: String.t() | nil
+  def check_adjacent(grid, col, row, :n), do: grid[col][row - 1]
+  def check_adjacent(grid, col, row, :ne), do: grid[col + 1][row - 1]
+  def check_adjacent(grid, col, row, :e), do: grid[col + 1][row]
+  def check_adjacent(grid, col, row, :se), do: grid[col + 1][row + 1]
+  def check_adjacent(grid, col, row, :s), do: grid[col][row + 1]
+  def check_adjacent(grid, col, row, :sw), do: grid[col - 1][row + 1]
+  def check_adjacent(grid, col, row, :w), do: grid[col - 1][row]
+  def check_adjacent(grid, col, row, :nw), do: grid[col - 1][row - 1]
+end
+```
+
+## Part 1
+
+```elixir
+import PrintingDeptartment
+
+grid = parse_to_grid(puzzle_input)
+
+for {col_index, row} <- grid, {row_index, "@"} <- row, reduce: 0 do
+  count ->
+    adjacent_rolls =
+      cardinal_directions()
+      |> Enum.map(&check_adjacent(grid, col_index, row_index, &1))
+      |> Enum.sum_by(&if(&1 == "@", do: 1, else: 0))
+
+    if adjacent_rolls < 4, do: count + 1, else: count
+end
+```
+
+## Part 2
+
+```elixir
+import PrintingDeptartment
+
+grid = parse_to_grid(puzzle_input)
+max_iterations = max_iterations(puzzle_input)
+
+Enum.reduce_while(0..max_iterations, {0, grid}, fn _, {starting_count, grid} ->
+  {finishing_count, remove_rolls} =
+    for {col_index, row} <- grid, {row_index, "@"} <- row, reduce: {starting_count, []} do
+      {count, remove_rolls} ->
+        adjacent_rolls =
+          cardinal_directions()
+          |> Enum.map(&check_adjacent(grid, col_index, row_index, &1))
+          |> Enum.sum_by(&if(&1 == "@", do: 1, else: 0))
+
+        if adjacent_rolls < 4 do
+          {count + 1, [[col_index, row_index] | remove_rolls]}
+        else
+          {count, remove_rolls}
+        end
+    end
+
+  grid = Enum.reduce(remove_rolls, grid, &put_in(&2, &1, "."))
+
+  if finishing_count == starting_count do
+    {:halt, finishing_count}
+  else
+    {:cont, {finishing_count, grid}}
+  end
+end)
+```
+
+<!-- livebook:{"offset":3029,"stamp":{"token":"XCP.83_-YYvLqMgCTW6XgUYIt9ujy7F5NeYeZeXwODDrNMXbG1BhqiZsRjdh-j8roZMXqR_sMRIkJpXMKkUEsPY24SDGpygrDtk0s68vKt473IhhVN8ezrz6-cyzM5uX","version":2}} -->
