@@ -1,0 +1,105 @@
+# --- Day 6: Trash Compactor ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI2Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNSJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2025", "6", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+test_input = Kino.Input.read(test_input)
+```
+
+```elixir
+defmodule TrashCompactor do
+  def parse_homework(input) do
+    {nums_strings, [ops_string]} = split_nums_ops(input)
+
+    nums =
+      nums_strings
+      |> Enum.map(fn nums_string ->
+        nums_string
+        |> String.split(" ", trim: true)
+        |> Enum.map(&String.to_integer/1)
+        |> Enum.with_index(&{&2, &1})
+        |> Map.new()
+      end)
+
+    {nums, ops_map(ops_string)}
+  end
+
+  def split_nums_ops(input) do
+    input
+    |> String.split("\n")
+    |> Enum.split_with(fn
+      "*" <> _ -> false
+      "+" <> _ -> false
+      _ -> true
+    end)
+  end
+
+  def ops_map(ops_string) do
+    ops_string |> String.split(" ", trim: true) |> Enum.with_index(&{&2, &1})
+  end
+
+  def do_op("*", nums), do: Enum.product(nums)
+  def do_op("+", nums), do: Enum.sum(nums)
+end
+```
+
+## Part 1
+
+```elixir
+import TrashCompactor
+
+# {nums, ops} = parse_homework(test_input)
+{nums, ops} = parse_homework(puzzle_input)
+
+Enum.reduce(ops, 0, fn {col_index, op}, acc ->
+  variables = for row <- nums, do: row[col_index]
+  acc + do_op(op, variables)
+end)
+```
+
+## Part 2
+
+```elixir
+import TrashCompactor
+
+# {nums_strings, [ops_string]} = split_nums_ops(test_input)
+{nums_strings, [ops_string]} = split_nums_ops(puzzle_input)
+column_separator = String.duplicate(" ", length(nums_strings))
+row_length = (nums_strings |> Enum.at(0) |> String.length()) - 1
+ops = ops_map(ops_string)
+
+vertical_number_map =
+  Enum.reduce(0..row_length, %{0 => []}, fn i, acc ->
+    vertical_num_string =
+      for row <- nums_strings, reduce: "" do
+        new_string -> new_string <> binary_slice(row, i..i)
+      end
+
+    # all spaces with no digits means new column
+    if vertical_num_string == column_separator do
+      Map.put(acc, map_size(acc), [])
+    else
+      vertical_num = vertical_num_string |> String.trim() |> String.to_integer()
+      Map.update!(acc, map_size(acc) - 1, &[vertical_num | &1])
+    end
+  end)
+
+Enum.sum_by(ops, fn {col_index, op} -> do_op(op, vertical_number_map[col_index]) end)
+```
+
+<!-- livebook:{"offset":2559,"stamp":{"token":"XCP.dKcuFi1gND7UjmQjsoYgpTA-dVJSfbDmPJWR2gwzgPgpBr-rtku1gbvwSW2efUVwLGGSNALvwMfhwCk8MuRDa6l-Mcb-o8pga2MWUgUw5BKaqqj6ZziVn--DxP0V","version":2}} -->
