@@ -21,19 +21,10 @@ test_input = Kino.Input.textarea("test_input")
 test_input = Kino.Input.read(test_input)
 ```
 
-```elixir
-defmodule Laboratories do
-  def parse_manifold(input) do
-    String.split(input)
-  end
-end
-```
-
 ## Part 1
 
 ```elixir
-import Laboratories
-[first_row | rows] = parse_manifold(puzzle_input)
+[first_row | rows] = String.split(puzzle_input)
 [{starting_index, _}] = Regex.run(~r(S), first_row, return: :index)
 
 rows
@@ -59,7 +50,34 @@ end)
 ## Part 2
 
 ```elixir
+[first_row | rows] = String.split(puzzle_input)
+[{starting_index, _}] = Regex.run(~r(S), first_row, return: :index)
 
+rows
+|> Enum.map(fn row ->
+  ~r/\^/
+  |> Regex.scan(row, return: :index)
+  |> Enum.map(fn [{index, _}] -> index end)
+end)
+|> Enum.reject(&(&1 == []))
+|> Enum.reduce(%{starting_index => 1}, fn splitter_indexes, beams ->
+  for {index, value} <- beams, reduce: beams do
+    acc ->
+      if index in splitter_indexes do
+        left_split = index - 1
+        right_split = index + 1
+
+        acc
+        |> Map.update(left_split, value, &(&1 + value))
+        |> Map.update(right_split, value, &(&1 + value))
+        |> Map.delete(index)
+      else
+        acc
+      end
+  end
+end)
+|> Map.values()
+|> Enum.sum()
 ```
 
-<!-- livebook:{"offset":1484,"stamp":{"token":"XCP._LaraMifyQwSOxULOCjCBcgQWzeJ0m1xKziVRnz6RgiFQ3DpVmO61GZEiFLZznhhFi5Fd8escF6yygdaWqdZJY0mcxQWo_LqVXLt992ofmPOn0yDiQYl9Xna_0fM","version":2}} -->
+<!-- livebook:{"offset":2080,"stamp":{"token":"XCP.A8LGRIiw_MK_qYQQ7mEirqdzEDdFxHPFWMnsnAuOmZt3lpdJeCZgeTW5gHt-e0ICXX_4tp-vVsGNuO8rad6r3WAgJ3It5Hsn5M1y9yC1BfW4ImTmIDPvATNp2h0n","version":2}} -->
