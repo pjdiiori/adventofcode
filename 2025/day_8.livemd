@@ -1,0 +1,109 @@
+# --- Day 8: Playground ---
+
+```elixir
+Mix.install([{:kino_aoc, "~> 0.1"}])
+```
+
+## Setup
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiI4Iiwic2Vzc2lvbl9zZWNyZXQiOiJBT0NfU0VTU0lPTl9DT09LSUUiLCJ5ZWFyIjoiMjAyNSJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2025", "8", System.fetch_env!("LB_AOC_SESSION_COOKIE"))
+```
+
+```elixir
+test_input = Kino.Input.textarea("test_input")
+```
+
+```elixir
+test_input = Kino.Input.read(test_input)
+```
+
+```elixir
+defmodule Playground do
+  def parse(input) do
+    input
+    |> String.split()
+    |> Enum.map(fn coords ->
+      coords |> String.split(",") |> Enum.map(&String.to_integer/1) |> List.to_tuple()
+    end)
+  end
+
+  def euclidian_dist({p1, p2, p3}, {q1, q2, q3}) do
+    # don't need to take square root since we're only comparing to other euclidian distances
+    (p1 - q1) ** 2 + (p2 - q2) ** 2 + (p3 - q3) ** 2
+  end
+
+  @spec connects_to_circuit([MapSet.t()], Tuple.t(), Tuple.t()) ::
+          integer() | {integer(), integer()} | nil
+  def connects_to_circuit(circuits, node_a, node_b) do
+    a_member_index = Enum.find_index(circuits, &MapSet.member?(&1, node_a))
+    b_member_index = Enum.find_index(circuits, &MapSet.member?(&1, node_b))
+
+    case {a_member_index, b_member_index} do
+      {nil, nil} -> nil
+      {index, nil} -> index
+      {nil, index} -> index
+      {index_a, index_b} when index_a == index_b -> index_a
+      # two different indexes means two existing circuits need to be merged
+      {index_a, index_b} -> {index_a, index_b}
+    end
+  end
+end
+```
+
+## Part 1
+
+```elixir
+import Playground
+
+coordinates = parse(puzzle_input)
+
+coordinates
+|> Enum.flat_map(fn node_a ->
+  for node_b <- coordinates, node_b != node_a do
+    [euclidian_dist(node_a, node_b), node_a, node_b]
+    |> Enum.sort()
+    |> List.to_tuple()
+  end
+end)
+|> MapSet.new()
+|> Enum.sort_by(&elem(&1, 0))
+|> Enum.take(1000)
+|> Enum.reduce([], fn {_, node_a, node_b}, acc ->
+  new_circuit = MapSet.new([node_a, node_b])
+
+  case connects_to_circuit(acc, node_a, node_b) do
+    # new circuit
+    nil ->
+      [new_circuit | acc]
+
+    # nodes common to 2 circuits, so we have to merge them together
+    {index_a, index_b} ->
+      circuit_b = Enum.at(acc, index_b)
+
+      acc
+      |> List.update_at(index_a, fn circuit_a ->
+        circuit_a |> MapSet.union(circuit_b) |> MapSet.union(new_circuit)
+      end)
+      |> List.delete_at(index_b)
+
+    # add nodes to existing circuit
+    index ->
+      List.update_at(acc, index, &MapSet.union(&1, new_circuit))
+  end
+end)
+|> Enum.sort_by(&MapSet.size/1, :desc)
+|> Enum.take(3)
+|> Enum.product_by(&MapSet.size/1)
+```
+
+## Part 2
+
+```elixir
+
+```
+
+<!-- livebook:{"offset":2742,"stamp":{"token":"XCP.eM_JNunVrulkZSuCjPbQ-RzyzYpvJMDd1dDp2KoGTfv3lWBKKjaB1dpPN1BGFB9RpowzDgOC6ja-msEZclqmdI9UZpPt4CFIu84jtlMCzJtxHfXdnI__FN34_9Ui","version":2}} -->
