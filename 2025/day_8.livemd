@@ -31,6 +31,19 @@ defmodule Playground do
     end)
   end
 
+  def sort_junction_boxes(coordinates) do
+    coordinates
+    |> Enum.flat_map(fn node_a ->
+      for node_b <- coordinates, node_b != node_a do
+        [euclidian_dist(node_a, node_b), node_a, node_b]
+        |> Enum.sort()
+        |> List.to_tuple()
+      end
+    end)
+    |> MapSet.new()
+    |> Enum.sort_by(&elem(&1, 0))
+  end
+
   def euclidian_dist({p1, p2, p3}, {q1, q2, q3}) do
     # don't need to take square root since we're only comparing to other euclidian distances
     (p1 - q1) ** 2 + (p2 - q2) ** 2 + (p3 - q3) ** 2
@@ -51,6 +64,33 @@ defmodule Playground do
       {index_a, index_b} -> {index_a, index_b}
     end
   end
+
+  @type junction_box :: {integer(), integer(), integer()}
+
+  @spec update_circuits([MapSet.t()], junction_box(), junction_box()) :: [MapSet.t()]
+  def update_circuits(circuits, node_a, node_b) do
+    new_circuit = MapSet.new([node_a, node_b])
+
+    case connects_to_circuit(circuits, node_a, node_b) do
+      # new circuit
+      nil ->
+        [new_circuit | circuits]
+
+      # nodes common to 2 circuits, so we have to merge them together
+      {index_a, index_b} ->
+        circuit_b = Enum.at(circuits, index_b)
+
+        circuits
+        |> List.update_at(index_a, fn circuit_a ->
+          circuit_a |> MapSet.union(circuit_b) |> MapSet.union(new_circuit)
+        end)
+        |> List.delete_at(index_b)
+
+      # add nodes to existing circuit
+      index ->
+        List.update_at(circuits, index, &MapSet.union(&1, new_circuit))
+    end
+  end
 end
 ```
 
@@ -62,38 +102,10 @@ import Playground
 coordinates = parse(puzzle_input)
 
 coordinates
-|> Enum.flat_map(fn node_a ->
-  for node_b <- coordinates, node_b != node_a do
-    [euclidian_dist(node_a, node_b), node_a, node_b]
-    |> Enum.sort()
-    |> List.to_tuple()
-  end
-end)
-|> MapSet.new()
-|> Enum.sort_by(&elem(&1, 0))
+|> sort_junction_boxes()
 |> Enum.take(1000)
 |> Enum.reduce([], fn {_, node_a, node_b}, acc ->
-  new_circuit = MapSet.new([node_a, node_b])
-
-  case connects_to_circuit(acc, node_a, node_b) do
-    # new circuit
-    nil ->
-      [new_circuit | acc]
-
-    # nodes common to 2 circuits, so we have to merge them together
-    {index_a, index_b} ->
-      circuit_b = Enum.at(acc, index_b)
-
-      acc
-      |> List.update_at(index_a, fn circuit_a ->
-        circuit_a |> MapSet.union(circuit_b) |> MapSet.union(new_circuit)
-      end)
-      |> List.delete_at(index_b)
-
-    # add nodes to existing circuit
-    index ->
-      List.update_at(acc, index, &MapSet.union(&1, new_circuit))
-  end
+  update_circuits(acc, node_a, node_b)
 end)
 |> Enum.sort_by(&MapSet.size/1, :desc)
 |> Enum.take(3)
@@ -103,7 +115,25 @@ end)
 ## Part 2
 
 ```elixir
+import Playground
 
+coordinates = parse(puzzle_input)
+input_size = length(coordinates)
+
+coordinates
+|> sort_junction_boxes()
+|> Enum.reduce_while([], fn {_, node_a, node_b}, acc ->
+  connecting_nodes = [node_a, node_b]
+
+  [circuit | _] = acc = update_circuits(acc, node_a, node_b)
+
+  if MapSet.size(circuit) == input_size do
+    {:halt, connecting_nodes}
+  else
+    {:cont, acc}
+  end
+end)
+|> Enum.product_by(&elem(&1, 0))
 ```
 
-<!-- livebook:{"offset":2742,"stamp":{"token":"XCP.eM_JNunVrulkZSuCjPbQ-RzyzYpvJMDd1dDp2KoGTfv3lWBKKjaB1dpPN1BGFB9RpowzDgOC6ja-msEZclqmdI9UZpPt4CFIu84jtlMCzJtxHfXdnI__FN34_9Ui","version":2}} -->
+<!-- livebook:{"offset":3590,"stamp":{"token":"XCP.GylsjXdyifGtmJ2NUvaVOaOWsniaGqC7xkzPwPSdFhQa3ULUYxsYT5ty8ywI5pzgCggr7PdJB6y-12kcOCxroxJWywS-p_obrzLwVWk_oweeMezt5mJI9tbOgJ12","version":2}} -->
